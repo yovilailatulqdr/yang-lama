@@ -19,7 +19,6 @@ import { AuthScreen } from './components/AuthScreen';
 import { SupabaseModal } from './components/SupabaseModal';
 import { MonthlyBillSection } from './components/MonthlyBillSection';
 import { MobileBottomNav } from './components/MobileBottomNav';
-import { cloudSyncService, INITIAL_BILLS_DATA } from './services/cloudSyncService';
 import {
   fetchRegistrationsFromDb,
   saveRegistrationToDb,
@@ -28,6 +27,8 @@ import {
   saveTrackingRecordToDb,
   fetchSurveysFromDb,
   saveSurveyToDb,
+  fetchMonthlyBillsFromDb,
+  saveMonthlyBillToDb,
   getSupabaseSessionUser,
   signOutUserWithSupabase,
 } from './services/supabaseService';
@@ -54,71 +55,31 @@ export default function App() {
   const [activeTrackingForm, setActiveTrackingForm] = useState<string>('');
   const [isOpenMobile, setIsOpenMobile] = useState<boolean>(false);
 
-  // Registrations state - seeded with customer data (Yovi, Amara, Nabila)
+  // Registrations state (Supabase is single source of truth when configured)
   const [registrations, setRegistrations] = useState<RegistrationFormData[]>(() => {
+    if (isSupabaseConfigured()) return [];
     try {
       const saved = localStorage.getItem('aetra_registrations');
-      let parsed: RegistrationFormData[] = saved ? JSON.parse(saved) : [];
-      if (!Array.isArray(parsed)) parsed = [];
-
-      // Clean old unwanted test names
-      parsed = parsed.filter(
-        (r) =>
-          !r.namaKtp?.toLowerCase().includes('ansori') &&
-          !r.namaKtp?.toLowerCase().includes('aan') &&
-          r.noSr !== '163784'
-      );
-
-      // Ensure the requested 3 customers exist with latest phone numbers
-      INITIAL_REGISTRATIONS.forEach((seed) => {
-        const existingIdx = parsed.findIndex(
-          (p) => p.noForm === seed.noForm || p.namaKtp?.toLowerCase() === seed.namaKtp?.toLowerCase()
-        );
-        if (existingIdx >= 0) {
-          parsed[existingIdx] = {
-            ...parsed[existingIdx],
-            namaKtp: seed.namaKtp,
-            telpHp: seed.telpHp,
-          };
-        } else {
-          parsed.push(seed);
-        }
-      });
-
-      return parsed;
+      return saved ? JSON.parse(saved) : INITIAL_REGISTRATIONS;
     } catch {
       return INITIAL_REGISTRATIONS;
     }
   });
 
-  // Tracking records state - synchronized with customer data
+  // Tracking records state (Supabase is single source of truth when configured)
   const [trackingRecords, setTrackingRecords] = useState<CustomerTrackingRecord[]>(() => {
+    if (isSupabaseConfigured()) return [];
     try {
       const saved = localStorage.getItem('aetra_tracking');
-      let parsed: CustomerTrackingRecord[] = saved ? JSON.parse(saved) : [];
-      if (!Array.isArray(parsed)) parsed = [];
-
-      INITIAL_TRACKING_DATABASE.forEach((seed) => {
-        const existingIdx = parsed.findIndex((p) => p.noForm === seed.noForm);
-        if (existingIdx >= 0) {
-          parsed[existingIdx] = {
-            ...parsed[existingIdx],
-            nama: seed.nama,
-            telp: seed.telp,
-          };
-        } else {
-          parsed.push(seed);
-        }
-      });
-
-      return parsed;
+      return saved ? JSON.parse(saved) : INITIAL_TRACKING_DATABASE;
     } catch {
       return INITIAL_TRACKING_DATABASE;
     }
   });
 
-  // Survey Submissions state
+  // Survey Submissions state (Supabase is single source of truth when configured)
   const [surveys, setSurveys] = useState<SurveySubmission[]>(() => {
+    if (isSupabaseConfigured()) return [];
     try {
       const saved = localStorage.getItem('aetra_surveys');
       return saved ? JSON.parse(saved) : INITIAL_SURVEY_RESPONSES;
@@ -127,14 +88,9 @@ export default function App() {
     }
   });
 
-  // Monthly Bills state - persistent and cloud synced
+  // Monthly Bills state (Supabase is single source of truth when configured)
   const [bills, setBills] = useState<MonthlyBillRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem('aetra_customer_bills');
-      return saved ? JSON.parse(saved) : INITIAL_BILLS_DATA;
-    } catch {
-      return INITIAL_BILLS_DATA;
-    }
+    return [];
   });
 
   // Admin sub-tab state ('registrations' | 'bills' | 'surveys' | 'field' | 'accounts')

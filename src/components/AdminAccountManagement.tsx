@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { UserAccount, RegistrationFormData } from '../types';
-import { cloudSyncService } from '../services/cloudSyncService';
+import { isSupabaseConfigured } from '../lib/supabase';
 import { fetchUserAccountsFromDb } from '../services/supabaseService';
 import {
   UserCheck,
@@ -32,37 +32,18 @@ export const AdminAccountManagement: React.FC<AdminAccountManagementProps> = ({
   const [roleFilter, setRoleFilter] = useState<'all' | 'customer' | 'admin'>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [accounts, setAccounts] = useState<UserAccount[]>(() => {
-    const snap = cloudSyncService.getLocalSnapshot().accounts || [];
-    return snap;
-  });
+  const [accounts, setAccounts] = useState<UserAccount[]>([]);
 
-  // Load and refresh accounts from cloud and server
+  // Load and refresh accounts directly from Supabase
   const loadAccounts = async () => {
     setIsRefreshing(true);
     try {
-      await cloudSyncService.pullFromCloud().catch(() => {});
-      const snap = cloudSyncService.getLocalSnapshot().accounts || [];
-      const remote = await fetchUserAccountsFromDb().catch(() => null);
-
-      const mergedMap = new Map<string, UserAccount>();
-      snap.forEach((a) => {
-        if (a.email) mergedMap.set(a.email.toLowerCase(), a);
-      });
-      if (remote && Array.isArray(remote)) {
-        remote.forEach((ra) => {
-          if (ra.email) {
-            const key = ra.email.toLowerCase();
-            if (!mergedMap.has(key)) {
-              mergedMap.set(key, ra);
-            } else {
-              mergedMap.set(key, { ...mergedMap.get(key)!, ...ra });
-            }
-          }
-        });
+      if (isSupabaseConfigured()) {
+        const remote = await fetchUserAccountsFromDb();
+        if (remote && Array.isArray(remote)) {
+          setAccounts(remote);
+        }
       }
-
-      setAccounts(Array.from(mergedMap.values()));
     } catch (err) {
       console.warn('Error loading accounts:', err);
     } finally {
@@ -72,13 +53,6 @@ export const AdminAccountManagement: React.FC<AdminAccountManagementProps> = ({
 
   useEffect(() => {
     loadAccounts();
-    const unsub = cloudSyncService.addListener(() => {
-      const snap = cloudSyncService.getLocalSnapshot().accounts || [];
-      if (snap.length > 0) {
-        setAccounts(snap);
-      }
-    });
-    return unsub;
   }, []);
 
   // Filtered accounts based on search and role

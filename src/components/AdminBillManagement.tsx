@@ -1,7 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { MonthlyBillRecord, RegistrationFormData } from '../types';
-import { cloudSyncService, INITIAL_BILLS_DATA } from '../services/cloudSyncService';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { 
+  saveMonthlyBillToDb, 
+  deleteMonthlyBillFromDb, 
+  fetchMonthlyBillsFromDb 
+} from '../services/supabaseService';
 import {
   CreditCard,
   Plus,
@@ -332,29 +337,37 @@ export const AdminBillManagement: React.FC<AdminBillManagementProps> = ({
     let updated: MonthlyBillRecord[];
     if (editingBill) {
       updated = bills.map((b) => (b.id === editingBill.id ? billRecord : b));
-      showToast(`Tagihan untuk ${billRecord.nama} berhasil diperbarui.`);
     } else {
       updated = [billRecord, ...bills];
-      showToast(`Tagihan baru untuk ${billRecord.nama} berhasil ditambahkan.`);
+    }
+
+    const saveRes = await saveMonthlyBillToDb(billRecord);
+    if (!saveRes.success && isSupabaseConfigured()) {
+      showToast(`Gagal menyimpan ke Supabase: ${saveRes.error}`);
+      return;
     }
 
     onUpdateBills(updated);
-    cloudSyncService.saveBills(updated);
+    showToast(editingBill ? `Tagihan untuk ${billRecord.nama} berhasil diperbarui.` : `Tagihan baru untuk ${billRecord.nama} berhasil ditambahkan.`);
     setIsAddModalOpen(false);
     setEditingBill(null);
   };
 
   // Delete Bill
-  const handleDeleteBill = (id: string, name: string) => {
+  const handleDeleteBill = async (id: string, name: string) => {
     if (!window.confirm(`Yakin ingin menghapus data tagihan untuk ${name}?`)) return;
+    const delRes = await deleteMonthlyBillFromDb(id);
+    if (!delRes.success && isSupabaseConfigured()) {
+      showToast(`Gagal menghapus tagihan di Supabase: ${delRes.error}`);
+      return;
+    }
     const updated = bills.filter((b) => b.id !== id);
     onUpdateBills(updated);
-    cloudSyncService.deleteBill(id);
     showToast(`Tagihan untuk ${name} telah dihapus.`);
   };
 
   // Toggle Status Lunas / Belum Lunas
-  const handleToggleStatus = (bill: MonthlyBillRecord) => {
+  const handleToggleStatus = async (bill: MonthlyBillRecord) => {
     const newStatus = bill.status === 'LUNAS' ? 'BELUM LUNAS' : 'LUNAS';
     const updatedRecord: MonthlyBillRecord = {
       ...bill,
@@ -363,9 +376,14 @@ export const AdminBillManagement: React.FC<AdminBillManagementProps> = ({
       metodeBayar: newStatus === 'LUNAS' ? 'Kasir / Mitra Resmi Aetra' : undefined,
     };
 
+    const saveRes = await saveMonthlyBillToDb(updatedRecord);
+    if (!saveRes.success && isSupabaseConfigured()) {
+      showToast(`Gagal memperbarui status di Supabase: ${saveRes.error}`);
+      return;
+    }
+
     const updated = bills.map((b) => (b.id === bill.id ? updatedRecord : b));
     onUpdateBills(updated);
-    cloudSyncService.saveBills(updated);
     showToast(`Status tagihan #${bill.idPelanggan} diubah menjadi ${newStatus}.`);
   };
 
@@ -496,15 +514,15 @@ export const AdminBillManagement: React.FC<AdminBillManagementProps> = ({
   };
 
   // Commit Excel Import
-  const handleCommitImport = () => {
+  const handleCommitImport = async () => {
     if (importPreview.length === 0) {
-      alert('Tidak ada data yang dapat diimpor.');
+      showToast('Tidak ada data yang dapat diimpor.');
       return;
     }
 
     // Merge: update existing by ID Pelanggan + Periode, append new
     const merged = [...bills];
-    importPreview.forEach((newBill) => {
+    for (const newBill of importPreview) {
       const existingIdx = merged.findIndex(
         (b) => b.idPelanggan === newBill.idPelanggan && b.periodeBulan === newBill.periodeBulan
       );
@@ -513,11 +531,13 @@ export const AdminBillManagement: React.FC<AdminBillManagementProps> = ({
       } else {
         merged.unshift(newBill);
       }
-    });
+      if (isSupabaseConfigured()) {
+        await saveMonthlyBillToDb(newBill);
+      }
+    }
 
     onUpdateBills(merged);
-    cloudSyncService.saveBills(merged);
-    showToast(`Berhasil mengimpor ${importPreview.length} data tagihan dari Excel!`);
+    showToast(`Berhasil mengimpor ${importPreview.length} data tagihan dan menyimpan ke Supabase!`);
     setIsImportModalOpen(false);
     setImportPreview([]);
     setImportFileName('');
@@ -526,9 +546,18 @@ export const AdminBillManagement: React.FC<AdminBillManagementProps> = ({
   // Manual Trigger Cloud Sync
   const handleManualSync = async () => {
     setIsSyncing(true);
-    await cloudSyncService.syncNow();
+    if (isSupabaseConfigured()) {
+      const remote = await fetchMonthlyBillsFromDb();
+      if (remote) {
+        onUpdateBills(remote);
+        showToast('Data tagihan terbaru berhasil dimuat dari database Supabase!');
+      } else {
+        showToast('Gagal memuat data dari Supabase.');
+      }
+    } else {
+      showToast('Supabase belum dikonfigurasi di environment variables.');
+    }
     setIsSyncing(false);
-    showToast('Sinkronisasi database tagihan cloud berhasil!');
   };
 
   return (

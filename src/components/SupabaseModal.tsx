@@ -72,6 +72,11 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({ isOpen, onClose, o
       
       // Reload the client
       const client = reloadSupabaseClient();
+      if (!client) {
+        setTestStatus('error');
+        setTestMessage('Klien Supabase belum dapat diinisialisasi. Pastikan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY valid.');
+        return;
+      }
 
       // Test a light ping query on public schema
       const { error } = await client.from('registrations').select('count', { count: 'exact', head: true });

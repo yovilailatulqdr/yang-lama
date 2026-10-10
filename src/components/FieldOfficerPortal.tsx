@@ -442,6 +442,7 @@ export const FieldOfficerPortal: React.FC<FieldOfficerPortalProps> = ({
                       meter: 'Foto titik kran/pipa dinas yang dipasang',
                     };
                     const photo = getSlotPhoto(slot);
+                    const hasPhotoData = Boolean(photo && photo.dataUrl && typeof photo.dataUrl === 'string' && photo.dataUrl.trim());
 
                     return (
                       <div
@@ -453,7 +454,7 @@ export const FieldOfficerPortal: React.FC<FieldOfficerPortalProps> = ({
                             <span className="font-bold text-amber-400 text-[11px] uppercase">
                               {titles[slot]}
                             </span>
-                            {photo ? (
+                            {hasPhotoData ? (
                               <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold">
                                 ✓ Terunggah
                               </span>
@@ -468,16 +469,16 @@ export const FieldOfficerPortal: React.FC<FieldOfficerPortalProps> = ({
                           </p>
                         </div>
 
-                        {photo ? (
+                        {hasPhotoData ? (
                           <div className="relative group rounded-xl overflow-hidden border border-slate-700 aspect-4/3 bg-slate-900">
                             <img
-                              src={photo.dataUrl}
+                              src={photo!.dataUrl || undefined}
                               alt={titles[slot]}
                               className="w-full h-full object-cover cursor-pointer group-hover:scale-105 transition duration-300"
                               onClick={() =>
                                 setActiveViewer({
                                   isOpen: true,
-                                  imageUrl: photo.dataUrl,
+                                  imageUrl: photo!.dataUrl,
                                   title: titles[slot],
                                   description: `Unggahan dokumentasi lapangan untuk No. Form #${selectedRegistration.noForm}`,
                                 })
@@ -489,7 +490,7 @@ export const FieldOfficerPortal: React.FC<FieldOfficerPortalProps> = ({
                                 onClick={() =>
                                   setActiveViewer({
                                     isOpen: true,
-                                    imageUrl: photo.dataUrl,
+                                    imageUrl: photo!.dataUrl,
                                     title: titles[slot],
                                     description: `Unggahan dokumentasi lapangan untuk No. Form #${selectedRegistration.noForm}`,
                                   })
