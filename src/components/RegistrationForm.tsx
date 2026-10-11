@@ -28,7 +28,6 @@ import {
   ExternalLink,
   Layers,
   FileCheck,
-  FileText,
   CheckSquare,
   Square,
   ScrollText,
@@ -1227,10 +1226,10 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                           )}
                         </div>
 
-                        {Boolean(activeExistingRegistration.paymentProof.dataUrl && activeExistingRegistration.paymentProof.dataUrl.trim()) && (
+                        {activeExistingRegistration.paymentProof.dataUrl && (
                           <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-100 aspect-video flex items-center justify-center">
                             <img
-                              src={activeExistingRegistration.paymentProof.dataUrl || undefined}
+                              src={activeExistingRegistration.paymentProof.dataUrl}
                               alt="Bukti Transfer"
                               className="max-h-full object-contain"
                             />
@@ -1277,10 +1276,10 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                           Foto Struk / Tangkapan Layar Bukti Transfer <span className="text-red-500">*</span>
                         </label>
 
-                        {Boolean(paymentProofData.fileUrl && paymentProofData.fileUrl.trim()) ? (
+                        {paymentProofData.fileUrl ? (
                           <div className="relative group border rounded-xl overflow-hidden bg-black/5 aspect-video max-w-sm flex items-center justify-center">
                             <img
-                              src={paymentProofData.fileUrl || undefined}
+                              src={paymentProofData.fileUrl}
                               alt="Bukti Transfer"
                               className="max-h-full object-contain"
                             />
@@ -2208,18 +2207,11 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
 
                     {formData.persyaratanFiles?.ktp ? (
                       <div className="relative group border rounded-xl overflow-hidden bg-black/5 aspect-video flex items-center justify-center">
-                        {formData.persyaratanFiles.ktp.dataUrl && formData.persyaratanFiles.ktp.dataUrl.trim() ? (
-                          <img
-                            src={formData.persyaratanFiles.ktp.dataUrl || undefined}
-                            alt="KTP"
-                            className="max-h-full object-contain"
-                          />
-                        ) : (
-                          <div className="text-center p-2 text-xs text-slate-500 font-semibold flex flex-col items-center gap-1">
-                            <FileText className="w-6 h-6 text-slate-400" />
-                            <span>{formData.persyaratanFiles.ktp.name || 'Dokumen KTP'}</span>
-                          </div>
-                        )}
+                        <img
+                          src={formData.persyaratanFiles.ktp.dataUrl}
+                          alt="KTP"
+                          className="max-h-full object-contain"
+                        />
                         <button
                           type="button"
                           onClick={() => handleRemoveDoc('ktp')}
@@ -2271,18 +2263,11 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
 
                     {formData.persyaratanFiles?.kk ? (
                       <div className="relative group border rounded-xl overflow-hidden bg-black/5 aspect-video flex items-center justify-center">
-                        {formData.persyaratanFiles.kk.dataUrl && formData.persyaratanFiles.kk.dataUrl.trim() ? (
-                          <img
-                            src={formData.persyaratanFiles.kk.dataUrl || undefined}
-                            alt="KK"
-                            className="max-h-full object-contain"
-                          />
-                        ) : (
-                          <div className="text-center p-2 text-xs text-slate-500 font-semibold flex flex-col items-center gap-1">
-                            <FileText className="w-6 h-6 text-slate-400" />
-                            <span>{formData.persyaratanFiles.kk.name || 'Dokumen KK'}</span>
-                          </div>
-                        )}
+                        <img
+                          src={formData.persyaratanFiles.kk.dataUrl}
+                          alt="KK"
+                          className="max-h-full object-contain"
+                        />
                         <button
                           type="button"
                           onClick={() => handleRemoveDoc('kk')}
@@ -2334,18 +2319,11 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
 
                     {formData.persyaratanFiles?.pbb ? (
                       <div className="relative group border rounded-xl overflow-hidden bg-black/5 aspect-video flex items-center justify-center">
-                        {formData.persyaratanFiles.pbb.dataUrl && formData.persyaratanFiles.pbb.dataUrl.trim() ? (
-                          <img
-                            src={formData.persyaratanFiles.pbb.dataUrl || undefined}
-                            alt="PBB"
-                            className="max-h-full object-contain"
-                          />
-                        ) : (
-                          <div className="text-center p-2 text-xs text-slate-500 font-semibold flex flex-col items-center gap-1">
-                            <FileText className="w-6 h-6 text-slate-400" />
-                            <span>{formData.persyaratanFiles.pbb.name || 'Dokumen PBB'}</span>
-                          </div>
-                        )}
+                        <img
+                          src={formData.persyaratanFiles.pbb.dataUrl}
+                          alt="PBB"
+                          className="max-h-full object-contain"
+                        />
                         <button
                           type="button"
                           onClick={() => handleRemoveDoc('pbb')}
@@ -2397,18 +2375,11 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
 
                     {formData.persyaratanFiles?.lainnya ? (
                       <div className="relative group border rounded-xl overflow-hidden bg-black/5 aspect-video flex items-center justify-center">
-                        {formData.persyaratanFiles.lainnya.dataUrl && formData.persyaratanFiles.lainnya.dataUrl.trim() ? (
-                          <img
-                            src={formData.persyaratanFiles.lainnya.dataUrl || undefined}
-                            alt="Dokumen Lainnya"
-                            className="max-h-full object-contain"
-                          />
-                        ) : (
-                          <div className="text-center p-2 text-xs text-slate-500 font-semibold flex flex-col items-center gap-1">
-                            <FileText className="w-6 h-6 text-slate-400" />
-                            <span>{formData.persyaratanFiles.lainnya.name || 'Dokumen Lainnya'}</span>
-                          </div>
-                        )}
+                        <img
+                          src={formData.persyaratanFiles.lainnya.dataUrl}
+                          alt="Dokumen Lainnya"
+                          className="max-h-full object-contain"
+                        />
                         <button
                           type="button"
                           onClick={() => handleRemoveDoc('lainnya')}

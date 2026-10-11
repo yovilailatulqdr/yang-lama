@@ -544,58 +544,6 @@ export const saveUserAccountToDb = async (acc: UserAccount): Promise<boolean> =>
   return isSaved;
 };
 
-export const MASTER_ADMIN_ACCOUNT: UserAccount = {
-  id: 'acc-admin',
-  idPelanggan: '10999999',
-  nama: 'Administrator Aetra Tangerang',
-  email: 'admin@aetra.co.id',
-  telp: '081199887766',
-  password: 'aetra123',
-  role: 'admin',
-  createdAt: '2026-01-01T00:00:00.000Z',
-};
-
-export const deleteUserAccountFromDb = async (id: string): Promise<{ success: boolean; error?: string }> => {
-  try {
-    if (isSupabaseConfigured()) {
-      const client = getDb();
-      await client.from('user_accounts').delete().or(`id.eq.${id},user_id.eq.${id}`);
-    }
-    try {
-      const snap = cloudSyncService.getLocalSnapshot();
-      const updated = (snap.accounts || []).filter((a) => a.id !== id && a.userId !== id);
-      localStorage.setItem('aetra_accounts', JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
-    return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err?.message || 'Gagal menghapus akun.' };
-  }
-};
-
-export const deleteAllNonAdminAccountsFromDb = async (): Promise<{ success: boolean; count?: number; error?: string }> => {
-  try {
-    let count = 0;
-    if (isSupabaseConfigured()) {
-      const client = getDb();
-      const { data } = await client.from('user_accounts').select('id, role').neq('role', 'admin');
-      count = data?.length || 0;
-      await client.from('user_accounts').delete().neq('role', 'admin');
-    }
-    try {
-      const snap = cloudSyncService.getLocalSnapshot();
-      const adminAccounts = (snap.accounts || []).filter((a) => a.role === 'admin' || a.id === MASTER_ADMIN_ACCOUNT.id);
-      localStorage.setItem('aetra_accounts', JSON.stringify(adminAccounts));
-    } catch {
-      // ignore
-    }
-    return { success: true, count };
-  } catch (err: any) {
-    return { success: false, error: err?.message || 'Gagal menghapus akun.' };
-  }
-};
-
 // Real Supabase Authentication: signUp() with reliable fallback
 export const signUpWithSupabaseAuth = async (
   email: string,

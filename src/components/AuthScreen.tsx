@@ -75,7 +75,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
       } else {
         setErrorMessage(
           result.error ||
-            'Gagal masuk. Periksa kembali email dan kata sandi Anda atau pastikan koneksi Supabase aktif.'
+            'Akun belum terdaftar di sistem. Silakan pilih tab "Daftar Akun Baru" di atas untuk mendaftarkan akun pelanggan Anda.'
         );
       }
     } catch (err: any) {
@@ -134,18 +134,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
           // ignore
         }
 
-        if (result.requiresEmailConfirmation) {
-          setIsLoading(false);
-          setSuccessMessage(
-            result.message ||
-              'Pendaftaran akun di Supabase Auth berhasil! Tautan verifikasi telah dikirimkan ke email Anda. Harap konfirmasi email terlebih dahulu sebelum masuk.'
-          );
-          // Pindahkan form ke tab login dengan mengisi email yang didaftarkan
-          setAuthMode('login');
-          setLoginIdentifier(contact);
-          return;
-        }
-
         setIsLoading(false);
         setSuccessMessage('Pendaftaran akun berhasil! Mengalihkan ke portal pelanggan...');
 
@@ -154,7 +142,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
         }, 750);
       } else {
         setIsLoading(false);
-        setErrorMessage(result.error || 'Gagal mendaftarkan akun di Supabase Auth. Silakan periksa data Anda.');
+        setErrorMessage(result.error || 'Gagal mendaftarkan akun. Silakan periksa data Anda.');
       }
     } catch (err: any) {
       setIsLoading(false);

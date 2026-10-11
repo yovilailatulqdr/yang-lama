@@ -820,26 +820,20 @@ export const MonthlyBillSection: React.FC<MonthlyBillSectionProps> = ({
                       </div>
 
                       <div className="flex items-center gap-3">
-                        {Boolean(currentBill.paymentProof.fileUrl && currentBill.paymentProof.fileUrl.trim()) ? (
-                          <button
-                            type="button"
-                            onClick={() => setViewingReceiptImage(currentBill.paymentProof?.fileUrl || null)}
-                            className="w-16 h-16 rounded-xl border border-slate-200 bg-slate-100 overflow-hidden relative group cursor-pointer shrink-0"
-                          >
-                            <img
-                              src={currentBill.paymentProof.fileUrl || undefined}
-                              alt="Bukti Bayar"
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white">
-                              <Eye className="w-4 h-4" />
-                            </div>
-                          </button>
-                        ) : (
-                          <div className="w-16 h-16 rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
-                            <FileCheck className="w-6 h-6 text-teal-600" />
+                        <button
+                          type="button"
+                          onClick={() => setViewingReceiptImage(currentBill.paymentProof?.fileUrl || null)}
+                          className="w-16 h-16 rounded-xl border border-slate-200 bg-slate-100 overflow-hidden relative group cursor-pointer shrink-0"
+                        >
+                          <img
+                            src={currentBill.paymentProof.fileUrl}
+                            alt="Bukti Bayar"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white">
+                            <Eye className="w-4 h-4" />
                           </div>
-                        )}
+                        </button>
 
                         <div className="text-xs space-y-1">
                           <div className="font-bold text-slate-800">{currentBill.paymentProof.fileName}</div>
@@ -1161,11 +1155,9 @@ export const MonthlyBillSection: React.FC<MonthlyBillSectionProps> = ({
                   />
                   {proofFile ? (
                     <div className="space-y-2">
-                      {proofFile.dataUrl && proofFile.dataUrl.trim() ? (
-                        <div className="w-16 h-16 rounded-xl border border-slate-200 mx-auto overflow-hidden bg-white shadow-xs">
-                          <img src={proofFile.dataUrl} alt="Preview" className="w-full h-full object-cover" />
-                        </div>
-                      ) : null}
+                      <div className="w-16 h-16 rounded-xl border border-slate-200 mx-auto overflow-hidden bg-white shadow-xs">
+                        <img src={proofFile.dataUrl} alt="Preview" className="w-full h-full object-cover" />
+                      </div>
                       <div className="text-xs font-bold text-emerald-700 flex items-center justify-center gap-1">
                         <CheckCircle2 className="w-4 h-4" />
                         <span>{proofFile.name} ({proofFile.size})</span>
@@ -1218,7 +1210,7 @@ export const MonthlyBillSection: React.FC<MonthlyBillSectionProps> = ({
       )}
 
       {/* Image Preview Modal */}
-      {Boolean(viewingReceiptImage && viewingReceiptImage.trim()) && (
+      {viewingReceiptImage && (
         <div
           className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
           onClick={() => setViewingReceiptImage(null)}
@@ -1230,7 +1222,7 @@ export const MonthlyBillSection: React.FC<MonthlyBillSectionProps> = ({
             >
               <X className="w-4 h-4" />
             </button>
-            <img src={viewingReceiptImage!} alt="Bukti Pembayaran Penuh" className="w-full h-auto max-h-[85vh] object-contain rounded-xl" />
+            <img src={viewingReceiptImage} alt="Bukti Pembayaran Penuh" className="w-full h-auto max-h-[85vh] object-contain rounded-xl" />
           </div>
         </div>
       )}
